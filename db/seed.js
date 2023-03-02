@@ -13,8 +13,10 @@ const dropTables = async() =>{
     try{
         console.log('DROPPING TABLES');
         await client.query(`
+            DROP TABLE IF EXISTS post_tags;
             DROP TABLE IF EXISTS posts;
             DROP TABLE IF EXISTS users;
+            DROP TABLE IF EXISTS tags;
         `);
         console.log('TABLES DROPPED');
     }catch(err){
@@ -44,6 +46,16 @@ const createTables = async() =>{
             title VARCHAR(255),
             content TEXT NOT NULL, 
             active BOOLEAN DEFAULT true
+        );
+
+        CREATE TABLE tags(
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) UNIQUE NOT NULL
+        );
+
+        CREATE TABLE post_tags(
+            "postId" INTEGER UNIQUE REFERENCES posts(id),
+            "tagId" INTEGER UNIQUE REFERENCES tags(id)
         )
     `)
 
@@ -81,9 +93,6 @@ const testDB = async() => {
        await createNewPost(2, 'Intern', 'I just want to be alive and make something real');
        await createNewPost(3, 'Chinese Satellite', 'Why would someone do this on purpose when they could do something else');
        await createNewPost(3, 'This Is The End', 'Ahhhhhhh');
-       const user = await getUserById(3);
-    //    const posts = await getPostsByUser(3);
-       console.log('user: ', user);
     }catch(err){
         console.log(err);
     }

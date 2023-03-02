@@ -132,13 +132,16 @@ const getUserById = async(userId)=>{
             WHERE users.id= ${userId};
         `);
         console.log('GOT USER BY ID');
+        if(rows.length === 0) return null;
+        else{
         rows[0].posts = posts;
-        return rows[0];
+        return rows[0];}
     }catch(err){
         console.log(err);
         throw err;
     }
-}
+};
+
 
 
 module.exports ={
