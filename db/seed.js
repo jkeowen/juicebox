@@ -1,11 +1,15 @@
-const { client, getAllUsers, 
+const { client, 
+        getAllUsers, 
         createNewUser, 
         updateUser, 
         createNewPost, 
         updatePost, 
         getAllPosts, 
         getPostsByUser,
-        getUserById } = require('./index.js');
+        getUserById,
+        createTags, 
+        createPostTag, 
+        addTagsToPost} = require('./index.js');
 
 
 
@@ -49,13 +53,14 @@ const createTables = async() =>{
         );
 
         CREATE TABLE tags(
-            id SERIAL PRIMARY KEY,
+            id SERIAL PRIMARY KEY UNIQUE,
             name VARCHAR(255) UNIQUE NOT NULL
         );
 
         CREATE TABLE post_tags(
-            "postId" INTEGER UNIQUE REFERENCES posts(id),
-            "tagId" INTEGER UNIQUE REFERENCES tags(id)
+            "postId"  INTEGER REFERENCES posts(id),
+            "tagId" INTEGER REFERENCES tags(id),
+             CONSTRAINT UC_posttags UNIQUE("tagId")
         )
     `)
 
@@ -79,20 +84,63 @@ const rebuildTables = async() => {
 
 }
 
+const createNewUsers = async() => {
+    try{
+        console.log('STARTING TO CREATE USERS');
+        await createNewUser('Michelle Zauner ', 'jBrekie', 'Paprika', 'Pennsylvania');
+        await createNewUser('Angel Olsen', 'aOlsen', 'Lark', 'California');
+        await createNewUser('Phoebe Bridgers', 'pBridg', 'GardenSong', 'California');
+        console.log('USERS CREATED');
+
+
+    }catch(err){
+        console.log(err)
+    }
+}
+
+const createNewPosts = async() => {
+    try{
+        console.log('STARTING TO CREATING NEW POSTS');
+        await createNewPost(1, 'The Body Is A Blade', 'The body is a blade that cuts a path from day to day');
+        await createNewPost(2, 'Intern', 'I just want to be alive and make something real');
+        await createNewPost(3, 'Chinese Satellite', 'Why would someone do this on purpose when they could do something else');
+        await createNewPost(3, 'This Is The End', 'Ahhhhhhh');
+        console.log('NEW POSTS CREATED');
+
+
+    }catch(err){
+        console.log(err)
+    }
+}
+
+const createInitialTags = async() => {
+    try{
+        console.log("STARTING TO CREATE TAGS...");
+
+        const [happy, sad, inspo, catman] = await createTags([
+            '#happy', 
+            '#worst-day-ever',
+            '#youcandoanything',
+            '#catmandoeverything'
+        ]);
+        console.log('created tags')
+        const [postOne, postTwo, postThree] = await getAllPosts();
+        await addTagsToPost(postOne.id, [happy, inspo]);
+        await addTagsToPost(postTwo.id, [sad, inspo]);
+        await addTagsToPost(postThree.id, [happy, catman, inspo]);
+        console.log('FINISHED CREATING TAGS!');
+
+    }catch(err){
+        console.log(err);
+    }
+}
+
 
 const testDB = async() => {
     try{
-       await createNewUser('Michelle Zauner ', 'jBrekie', 'Paprika', 'Pennsylvania');
-       await createNewUser('Angel Olsen', 'aOlsen', 'Lark', 'California');
-       await createNewUser('Pheobe Bridgers', 'pBridg', 'GardenSong', 'California');
-       await updateUser(3, {
-        name: 'Phoebe Bridgers',
-        location: 'LA'
-       });
-       await createNewPost(1, 'The Body Is A Blade', 'The body is a blade that cuts a path from day to day');
-       await createNewPost(2, 'Intern', 'I just want to be alive and make something real');
-       await createNewPost(3, 'Chinese Satellite', 'Why would someone do this on purpose when they could do something else');
-       await createNewPost(3, 'This Is The End', 'Ahhhhhhh');
+       await createNewUsers();
+       await createNewPosts();
+      await createInitialTags();
     }catch(err){
         console.log(err);
     }
