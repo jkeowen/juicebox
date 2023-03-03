@@ -9,7 +9,9 @@ const { client,
         getUserById,
         createTags, 
         createPostTag, 
-        addTagsToPost} = require('./index.js');
+        addTagsToPost,
+        getPostById,
+        getPostsByTagName} = require('./index.js');
 
 
 
@@ -141,6 +143,8 @@ const testDB = async() => {
        await createNewUsers();
        await createNewPosts();
       await createInitialTags();
+      console.log('*TEST getPostsByTagName');
+      console.log(await getPostsByTagName('#happy'))
     }catch(err){
         console.log(err);
     }
