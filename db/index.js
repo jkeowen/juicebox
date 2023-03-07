@@ -1,7 +1,6 @@
 const { Client } = require('pg');
 const client = new Client('postgres://localhost:5432/juicebox-dev');
 
-// const createNewUser = (username)
 
 const getAllUsers = async() => {
     try{
@@ -17,12 +16,13 @@ const getAllUsers = async() => {
 
 const createNewUser = async(name, username, password, location) => {
     try{
-    await client.query(`
+    const {rows} = await client.query(`
         INSERT INTO users(name, username, password, location) 
         VALUES($1, $2, $3, $4)
         ON CONFLICT (username) DO NOTHING
         RETURNING *;
     `, [name, username, password, location]);
+    return rows;
     }catch(err){
         console.log(err);
         throw err;
@@ -264,6 +264,30 @@ const getPostsByTagName = async(tagName) => {
     }
 }
 
+const getAllTags = async() =>{
+    try{
+        const { rows } = await client.query(`
+            SELECT * FROM tags;
+        `)
+        return rows;
+    }catch(err){
+        console.log(err)
+    }
+};
+
+const getUserByUsername = async(username) => {
+    try{
+        const { rows: [user] } = await client.query(
+            `
+                SELECT * FROM users
+                WHERE username = $1;
+            `, [username])
+            return user;
+    }catch(err){
+        console.log(err);
+        }
+}
+
 module.exports ={
     client,
     getAllUsers,
@@ -278,5 +302,7 @@ module.exports ={
     createPostTag,
     addTagsToPost,
     getPostById,
-    getPostsByTagName
+    getPostsByTagName,
+    getAllTags,
+    getUserByUsername
 }
