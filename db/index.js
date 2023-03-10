@@ -1,5 +1,5 @@
 const { Client } = require('pg');
-const client = new Client('postgres://localhost:5432/juicebox-dev');
+const client = new Client(process.env.DATABASE_URL || 'postgres://localhost:5432/juicebox-dev');
 
 
 const getAllUsers = async() => {
@@ -50,18 +50,20 @@ const updateUser = async(id, fields={}) =>{
     }
 };
 
-const createNewPost = async(
+const createNewPost = async({
     authorId, 
     title, 
-    content
-) =>{
+    content,
+    tags = []
+}) =>{
     try{
-        const { rows } = await client.query(`
+        const { rows: [post] } = await client.query(`
             INSERT INTO posts ("authorId", title, content)
             VALUES($1, $2, $3)
             RETURNING *;
-        `, [ authorId, title, content ] )
-        return rows;
+        `, [ authorId, title, content ] );
+        const tagList = await createTags(tags);
+        return await addTagsToPost(post.id, tagList)
     }catch(err){
         console.log(err);
         throw err;
@@ -76,7 +78,8 @@ const updatePost =  async(postId, fields = {}) =>{
 
     const setString = Object.keys(fields).map((key, index)=> `${ key }=$${ index + 1 }`
         ).join(', ');
-        console.log(setString);
+        console.log(Object.values(fields))
+
     try{
        if(setString.length > 0){
         await client.query(`
@@ -208,6 +211,14 @@ const getPostById = async(postId) =>{
             FROM posts
             WHERE id=$1;
         `, [postId]);
+
+        if(!post){
+            throw{
+                name: "PostNotFoundError",
+                message: "Could not find a post with that postId"
+            };
+        }
+
         const {rows: tags} = await client.query(`
             SELECT tags.name 
             FROM tags
@@ -287,6 +298,7 @@ const getUserByUsername = async(username) => {
         console.log(err);
         }
 }
+
 
 module.exports ={
     client,

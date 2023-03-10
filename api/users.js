@@ -1,6 +1,7 @@
 const express = require('express');
 const usersRouter = express.Router();
-const { getAllUsers, getUserByUsername, createNewUser } = require('../db');
+const { getAllUsers, getUserByUsername, createNewUser, getUserById, updateUser } = require('../db');
+const { requireUser } = require('./utils')
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const {JWT_SECRET} = process.env;
@@ -44,6 +45,7 @@ usersRouter.post('/register', async(req, res, next) => {
 });
 
 usersRouter.post('/login', async(req, res, next) => {
+
     const { username, password } = req.body;
     if(!username || !password){
 
@@ -56,7 +58,6 @@ usersRouter.post('/login', async(req, res, next) => {
             const user = await getUserByUsername(username);
             const token = jwt.sign({id: user.id, username: user.username}, JWT_SECRET)
             if(user && user.password == password){
-                console.log('active');
                 res.send({message: "you're logged in!", "token": `${token}`});
                 res.end();
             }else{
@@ -71,6 +72,30 @@ usersRouter.post('/login', async(req, res, next) => {
             next(err);
         }
 });
+
+usersRouter.delete('/:userId', requireUser, async(req, res, next)=> {
+    const userId = req.params.userId;
+    
+    try{
+        const user = await getUserById(userId)
+        if(user && user.id === req.user.id){
+            await updateUser(user.id, {active: false});
+            const updatedUsers = await getAllUsers();
+            res.send(updatedUsers);
+        }else{
+            next(user ? {
+                name: "UnauthorizedUserError",
+                message: "You cannot delete a user that isn't you!"
+            }:{
+                name: "UserNotFoundError",
+                message: "That user does not exist"
+            }
+            )
+        }
+    }catch({name, message}){
+        next({name, message});
+    }
+})
 
 
 

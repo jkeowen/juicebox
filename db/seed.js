@@ -103,10 +103,10 @@ const createNewUsers = async() => {
 const createNewPosts = async() => {
     try{
         console.log('STARTING TO CREATING NEW POSTS');
-        await createNewPost(1, 'The Body Is A Blade', 'The body is a blade that cuts a path from day to day');
-        await createNewPost(2, 'Intern', 'I just want to be alive and make something real');
-        await createNewPost(3, 'Chinese Satellite', 'Why would someone do this on purpose when they could do something else');
-        await createNewPost(3, 'This Is The End', 'Ahhhhhhh');
+        await createNewPost({authorId: 1, title: 'The Body Is A Blade', content: 'The body is a blade that cuts a path from day to day'});
+        await createNewPost({authorId: 2, title: 'Intern', content: 'I just want to be alive and make something real'});
+        await createNewPost({authorId: 3, title: 'Chinese Satellite', content: 'Why would someone do this on purpose when they could do something else'});
+        await createNewPost({authorId: 3, title: 'I Know The End', content: 'Ahhhhhhh'});
         console.log('NEW POSTS CREATED');
 
 
